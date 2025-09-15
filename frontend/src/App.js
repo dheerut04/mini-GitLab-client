@@ -1,25 +1,36 @@
-import logo from './logo.svg';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
+import { Login } from './components/Login/Login.tsx';
+import { useState, useEffect, Children } from 'react';
+import { DiffViewWidget } from './components/Diffview/Diffview.widget.tsx';
 
-function App() {
+export const App = () => {
+  const [gitLabToken, setGitLabToken] = useState('');
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('gitlab_token');
+    if (savedToken) {
+      setGitLabToken(savedToken);
+    }
+  },[]);
+
+  //we can use this to restrict other paths 😉
+  const ProtectedRoute = ({Children}) => {
+    if(!gitLabToken){
+      return <Navigate to={'/login'} />
+    }
+    return Children;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/login" element={<DiffViewWidget />} />
+      <Route path="/diff-view" element={
+        <ProtectedRoute>
+          <DiffViewWidget />
+        </ProtectedRoute>
+      } />
+      <Route path="*" element={<Navigate to="/login" />} />
+    </Routes>
   );
 }
-
-export default App;
